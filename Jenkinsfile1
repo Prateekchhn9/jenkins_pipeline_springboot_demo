@@ -1,0 +1,44 @@
+pipeline {
+    agent any
+    tools {
+        maven 'maven3'
+    }
+
+    stages {
+        stage('Git checkout') {
+            steps {
+                echo 'Checkout'
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/Prateekchhn9/jenkins_pipeline_springboot_demo.git']])
+                slackSend botUser: true, channel: 'notifications', color: 'good', message: 'Checkout is done', teamDomain: 'test-niv2177', tokenCredentialId: 'slack'
+            }
+        }
+        stage('Unit test') {
+            steps {
+                echo 'Unit test'
+                sh 'mvn test'
+                junit stdioRetention: '', testResults: '**/target/surefire-reports/*.xml'
+                slackSend botUser: true, channel: 'notifications', color: 'good', message: 'Unit test is done', teamDomain: 'test-niv2177', tokenCredentialId: 'slack'
+            }
+        }
+        stage('QA') {
+            steps {
+                echo 'QA'
+                sh 'mvn compile'
+                slackSend botUser: true, channel: 'notifications', color: 'good', message: 'QA test is done', teamDomain: 'test-niv2177', tokenCredentialId: 'slack'
+            }
+        }
+        stage('PreRelease') {
+            steps {
+                echo 'PostRelease'
+                sh 'mvn package'
+                slackSend botUser: true, channel: 'notifications', color: 'good', message: 'Pre release is done', teamDomain: 'test-niv2177', tokenCredentialId: 'slack'
+            }
+        }
+        stage('Release') {
+            steps {
+                echo 'Release'
+                slackSend botUser: true, channel: 'notifications', color: 'good', message: 'Release is done', teamDomain: 'test-niv2177', tokenCredentialId: 'slack'
+            }
+        }
+    }
+}
